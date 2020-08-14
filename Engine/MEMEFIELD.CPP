@@ -1,6 +1,7 @@
 #include "MemeField.h"
 #include <assert.h>
 #include <random>
+#include "SpriteCodex.h"
 
 void MemeField::Tile::SpawnMeme()
 {
@@ -18,10 +19,21 @@ void MemeField::Tile::Draw(const Vei2 & screenPos, Graphics & gfx) const
 	switch (state)
 	{
 	case MemeField::Tile::State::Hidden:
+		SpriteCodex::DrawTileButton(screenPos, gfx);
 		break;
 	case MemeField::Tile::State::Flagged:
+		SpriteCodex::DrawTileButton(screenPos, gfx);
+		SpriteCodex::DrawTileFlag(screenPos, gfx);
 		break;
 	case MemeField::Tile::State::Revealed:
+		if (!HasMeme())
+		{
+			SpriteCodex::DrawTile0(screenPos, gfx);
+		}
+		else
+		{
+			SpriteCodex::DrawTileBomb(screenPos, gfx);
+		}
 		break;
 	}
 }
@@ -48,11 +60,19 @@ MemeField::MemeField(int nMeme)
 
 void MemeField::Draw(Graphics & gfx) const
 {
+	gfx.DrawRect(Getrect(), SpriteCodex::baseColor);
+	for (Vei2 gridpos{ 0,0 }; gridpos.y < Height; ++gridpos.y)
+	{
+		for (gridpos.x = 0; gridpos.x < Wedth; ++gridpos.x)
+		{
+			TileAt(gridpos).Draw(gridpos * SpriteCodex::tileSize, gfx);
+		}
+	}
 }
 
 RectI MemeField::Getrect() const
 {
-	return RectI(0, Wedth, 0, Height);
+	return RectI(0, Wedth * SpriteCodex::tileSize, 0, Height * SpriteCodex::tileSize);
 }
 
 MemeField::Tile & MemeField::TileAt(const Vei2 & gridPos)
